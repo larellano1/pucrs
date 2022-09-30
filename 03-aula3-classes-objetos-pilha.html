@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Aula 2 - Parte 3 - Estrutura de Fila</title>
+</head>
+<body>
+    
+</body>
+</html>
+
+<script>
+
+class Pilha {
+    constructor(){
+        this.arrayInicial = [];      
+    }
+        enqueue(item){
+            this.arrayInicial.push(item);
+        }
+
+        dequeue(item){
+            this.arrayInicial.pop();
+        }
+        
+    }
+    
+    var a = new Pilha();
+    a.enqueue('a');
+    a.enqueue('c');
+    console.log(a);
+    a.dequeue('a');
+    console.log(a);
+    
+</script>
