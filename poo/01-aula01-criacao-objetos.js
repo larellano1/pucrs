@@ -11,7 +11,33 @@ var pessoa = {
 
 }
 
-//Exemplo 2 - Criação do objeto por meio de Classes
+//Exemplo 2 - Fábrica de objeto
+function criaEmpregado(nome, salarioBase, valorHora){
+    return {
+        nome,
+        salarioBase,
+        valorHora,
+        calculaSalario:()=>{
+            return salarioBase + valorHora*100;
+        }
+    }
+}
+
+console.log(criaEmpregado("Luis", 1000, 150))
+console.log(criaEmpregado("Luis", 2000, 100).calculaSalario())
+
+//Função construtora de objetos.
+function Pessoa2(nome, idade, apelido){
+
+    this.nome = nome,
+    this.idade = idade,
+    this.apelido = apelido
+}
+
+var p = new Pessoa2("Luis", 35, "Tutty");
+console.log(p);
+
+//Exemplo 3 - Criação do objeto por meio de Classes
 class Pessoa{
     constructor(nome, anoDeNascimento){
         this.nome = nome,
@@ -26,18 +52,3 @@ class Pessoa{
         return new Date().getFullYear() - this.anoDeNascimento;
     }
 }
-
-//Exemplo 3 - Fábrica de objeto
-function criaEmpregado(nome, salarioBase, valorHora){
-    return {
-        nome,
-        salarioBase,
-        valorHora,
-        calculaSalario:()=>{
-            return salarioBase + valorHora*100;
-        }
-    }
-}
-
-console.log(criaEmpregado("Luis", 1000, 150))
-console.log(criaEmpregado("Luis", 2000, 100).calculaSalario())
