@@ -66,31 +66,24 @@ def insert_products_from_dataframe(df):
     session.commit()
     session.close()
 
-#Functions to query data from the database
-
-#Create a function that queries the database in search for all vendas that have a particular cliente and returns a Pandas Dataframe
-def query_vendas_by_cliente(cpf):
+#Create a function that inserts vendas in the database
+def insert_venda(dia_venda, cliente, produto):
     session = orm.sessionmaker(bind=engine)()
-    vendas = sa.Table("vendas", base.metadata, autoload=True, autoload_with=engine)
-    query = sa.select([vendas]).where(vendas.columns.cliente == cpf)
-    result = session.execute(query)
-    df = pd.DataFrame(result.fetchall())
-    df.columns = result.keys()
+    venda = vendas(dia_venda=dia_venda, cliente=cliente, produto=produto)
+    session.add(venda)
+    session.commit()
     session.close()
-    return df
 
-#Create a function that queries the database in search for all clientes ordered by the sum of their vendas and returns a Pandas Dataframe
-def query_clientes_by_vendas():
+#Functions to update data from the database
+
+#Create function to update the product description by the product code
+def update_product_description(cod_barras, descricao):
     session = orm.sessionmaker(bind=engine)()
-    clientes = sa.Table("clientes", base.metadata, autoload=True, autoload_with=engine)
-    vendas = sa.Table("vendas", base.metadata, autoload=True, autoload_with=engine)
-    query = sa.select([clientes, sa.func.sum(vendas.columns.id_venda).label("total_vendas")]).select_from(clientes.join(vendas, clientes.columns.cpf == vendas.columns.cliente)).group_by(clientes.columns.cpf).order_by(sa.desc("total_vendas"))
-    result = session.execute(query)
-    df = pd.DataFrame(result.fetchall())
-    df.columns = result.keys()
+    produtos = sa.Table("produtos", base.metadata, autoload=True, autoload_with=engine)
+    query = sa.update(produtos).where(produtos.columns.cod_barras == cod_barras).values(descricao=descricao)
+    session.execute(query)
+    session.commit()
     session.close()
-    return df
-
 
 ########## USE CASES FOR THE ABOVE FUNCTIONS ##########
 
@@ -98,7 +91,7 @@ def query_clientes_by_vendas():
 try:
     insert_products_from_dataframe(pd.DataFrame({"cod_barras": ["1234567890", "0987654321", "1234567891"], "descricao": ["Produto 1", "Produto 2", "Produto 3"]}))
 except ValueError:
-    ValueError()
+    ValueError() 
     
 #Use the function to insert a new client
 try:
@@ -111,3 +104,10 @@ try:
     insert_clients_from_file("clientes.csv")
 except ValueError:
     ValueError()
+  
+#Insert a new venda
+try:
+    insert_venda(datetime.datetime.now(), "123.456.789-99", "1234567890")
+except ValueError:
+    ValueError()
+
