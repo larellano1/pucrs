@@ -66,6 +66,30 @@ def insert_products_from_dataframe(df):
     session.commit()
     session.close()
 
+#Functions to query data from the database
+
+#Create a function that queries the database in search for all vendas that have a particular cliente and returns a Pandas Dataframe
+def query_vendas_by_cliente(cpf):
+    session = orm.sessionmaker(bind=engine)()
+    vendas = sa.Table("vendas", base.metadata, autoload=True, autoload_with=engine)
+    query = sa.select([vendas]).where(vendas.columns.cliente == cpf)
+    result = session.execute(query)
+    df = pd.DataFrame(result.fetchall())
+    df.columns = result.keys()
+    session.close()
+    return df
+
+#Create a function that queries the database in search for all clientes ordered by the sum of their vendas and returns a Pandas Dataframe
+def query_clientes_by_vendas():
+    session = orm.sessionmaker(bind=engine)()
+    clientes = sa.Table("clientes", base.metadata, autoload=True, autoload_with=engine)
+    vendas = sa.Table("vendas", base.metadata, autoload=True, autoload_with=engine)
+    query = sa.select([clientes, sa.func.sum(vendas.columns.id_venda).label("total_vendas")]).select_from(clientes.join(vendas, clientes.columns.cpf == vendas.columns.cliente)).group_by(clientes.columns.cpf).order_by(sa.desc("total_vendas"))
+    result = session.execute(query)
+    df = pd.DataFrame(result.fetchall())
+    df.columns = result.keys()
+    session.close()
+    return df
 
 
 ########## USE CASES FOR THE ABOVE FUNCTIONS ##########
