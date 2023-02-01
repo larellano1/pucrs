@@ -32,6 +32,10 @@ class vendas(base):
     dia_venda = sa.Column(sa.DATETIME, default=datetime.date.today())
     cliente = sa.Column(sa.CHAR(14), sa.ForeignKey("clientes.cpf"), onupdate="CASCADE")
     produto = sa.Column(sa.CHAR(10), sa.ForeignKey("produtos.cod_barras"), onupdate="CASCADE")
+
+    def __str__(self):
+        return f"id: {self.id_venda} - data: {self.dia_venda} - cliente: {self.cliente} - produto: {self.produto}"
+
 try:
     base.metadata.create_all(engine)
     print("Tabelas criadas")
@@ -74,6 +78,20 @@ def insert_venda(dia_venda, cliente, produto):
     session.commit()
     session.close()
 
+#Create a function that queries the vendas table and returns a Pandas Dataframe with the vendas for a particular cliente
+def query_vendas_cliente(cliente):
+    session = orm.sessionmaker(bind=engine)()
+    result = session.query(vendas).where(vendas.cliente == cliente).all()
+    session.close()
+    return result
+
+#Create a function that queries the database and returns the name from the cliente that has the greatest number of vendas
+def query_cliente_mais_vendas():
+    session = orm.sessionmaker(bind=engine)()
+    result = session.query(clientes.nome, sa.func.count(vendas.cliente)).join(vendas, vendas.cliente == clientes.cpf).group_by(clientes.nome).order_by(sa.func.count(vendas.cliente).desc()).all()
+    session.close()
+    return result
+
 #Functions to update data from the database
 
 #Create function to update the product description by the product code
@@ -87,7 +105,7 @@ def update_product_description(cod_barras, descricao):
 
 ########## USE CASES FOR THE ABOVE FUNCTIONS ##########
 
-#Insert 3 diferent products in the database
+""" #Insert 3 diferent products in the database
 try:
     insert_products_from_dataframe(pd.DataFrame({"cod_barras": ["1234567890", "0987654321", "1234567891"], "descricao": ["Produto 1", "Produto 2", "Produto 3"]}))
 except ValueError:
@@ -109,5 +127,19 @@ except ValueError:
 try:
     insert_venda(datetime.datetime.now(), "123.456.789-99", "1234567890")
 except ValueError:
-    ValueError()
+    ValueError() """
 
+#Query the vendas table and return a Pandas Dataframe with the vendas for a particular cliente
+try:
+    df = query_vendas_cliente("123.456.789-99")
+    print(df[0])
+except ValueError:
+    ValueError() 
+
+#Query the vendas table and return a Pandas Dataframe with the vendas for the best cliente
+try:
+    df = query_cliente_mais_vendas()
+    print(df)
+except ValueError:
+    ValueError()
+    
