@@ -1,9 +1,12 @@
 import sqlalchemy as sa
 import sqlalchemy.orm as orm
 import datetime
+import pandas as pd
 
+#Create the database
 engine = sa.create_engine("sqlite:///vendas.db")
 
+#Create the tables
 base = orm.declarative_base()
 
 #Table clientes
@@ -16,11 +19,13 @@ class clientes(base):
     salario = sa.Column(sa.DECIMAL(10,2))
     dia_mes_aniversario = sa.Column(sa.CHAR(5))
 
+#Table produtos
 class produtos(base):
     __tablename__ = "produtos"
     cod_barras = sa.Column(sa.CHAR(10), primary_key=True, index=True)
     descricao = sa.Column(sa.VARCHAR(100), nullable=False)
 
+#Table vendas
 class vendas(base):
     __tablename__ = "vendas"
     id_venda = sa.Column(sa.INTEGER, primary_key=True, index=True)
@@ -33,6 +38,8 @@ try:
 except ValueError:
     ValueError()
 
+#Functions to insert data in the database
+
 #Create a code that inserts a new client in the database
 def insert_client(cpf, nome, email, genero, salario, dia_mes_aniversario):
     session = orm.sessionmaker(bind=engine)()
@@ -41,5 +48,42 @@ def insert_client(cpf, nome, email, genero, salario, dia_mes_aniversario):
     session.commit()
     session.close()
 
+#Create a function that inserts several clients in the database from a cvs file
+def insert_clients_from_file(file):
+    session = orm.sessionmaker(bind=engine)()
+    with open(file, "r") as f:
+        for line in f:
+            cpf, nome, email, genero, salario, dia_mes_aniversario = line.split(";")
+            cliente = clientes(cpf=cpf, nome=nome, email=email, genero=genero, salario=salario, dia_mes_aniversario=dia_mes_aniversario)
+            session.add(cliente)
+    session.commit()
+    session.close()
+
+#Create a function that inserts products in the database from a Pandas Dataframe, using sa.Table
+def insert_products_from_dataframe(df):
+    session = orm.sessionmaker(bind=engine)()
+    df.to_sql("produtos", con=engine, if_exists="append", index=False)
+    session.commit()
+    session.close()
+
+
+
+########## USE CASES FOR THE ABOVE FUNCTIONS ##########
+
+#Insert 3 diferent products in the database
+try:
+    insert_products_from_dataframe(pd.DataFrame({"cod_barras": ["1234567890", "0987654321", "1234567891"], "descricao": ["Produto 1", "Produto 2", "Produto 3"]}))
+except ValueError:
+    ValueError()
+    
 #Use the function to insert a new client
-insert_client("123.456.789-00", "João da Silva", "joao@gmail.com", "M", 1000.00, "01/01")
+try:
+    insert_client("123.456.789-99", "João da Silva", "joao@gmail.com", "M", 1000.00, "01/01")
+except ValueError:
+    ValueError()
+
+#Use the function to insert clients from csv file
+try:
+    insert_clients_from_file("clientes.csv")
+except ValueError:
+    ValueError()
